@@ -13,9 +13,10 @@ from nltk.stem import WordNetLemmatizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage
+from nltk.tokenize import RegexpTokenizer
 
 # Download required NLTK resources
-nltk.download('punkt')
+
 nltk.download('stopwords')
 nltk.download('wordnet')
 nltk.download('omw-1.4')
@@ -278,7 +279,10 @@ def preprocess_text(text):
     text = " ".join(processed_words)
     text = re.sub(r"http\S+|www\S+", "", text)
     text = re.sub(r"[^\w\s]", "", text)
-    tokens = word_tokenize(text)
+    
+    tokenizer = RegexpTokenizer(r'\w+')
+    tokens = tokenizer.tokenize(text)
+
     stop_words = set(stopwords.words("english"))
     tokens = [t for t in tokens if t not in stop_words]
     lemmatizer = WordNetLemmatizer()

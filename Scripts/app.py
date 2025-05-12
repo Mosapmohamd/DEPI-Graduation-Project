@@ -313,7 +313,7 @@ if st.button("Predict Sentiment"):
         # Generate recommendations if sentiment is negative
         if sentiment[0] == 'negative':
             with st.spinner('Generating recommendations...'):
-                prompt = f"You are an expert in tourism management. Based on the following negative review about a tourist site in Egypt: '{review}', identify the specific issues raised by the reviewer. Then, provide 2-4 concise, practical, and actionable recommendations for Egyptian tourism authorities or site managers to address these issues and enhance the visitor experience. Ensure the solutions are realistic and tailored to the problems mentioned."
+                prompt = f"You are an expert in tourism development and customer experience strategy. A tourist has shared the following negative review about a destination in Egypt:{review} Your task is to:Identify the key problems or pain points mentioned in the review.Provide 2–4 well-structured, actionable recommendations that a tourism business owner or site manager can implement to improve the visitor experience.Please ensure your suggestions are:Specific and feasible,Professional and courteous in toneFocused on service quality, staff training, infrastructure, or communication, where relevant, replay without saying i understand just provide the recommendations directly."
                 message = HumanMessage(content=prompt)
                 try:
                     response = llm.invoke([message])

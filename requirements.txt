@@ -9,3 +9,4 @@ nltk==3.9.1
 tensorflow==2.19.0
 keras==3.9.2
 langchain==0.3.25
+langchain-google-genai==2.1.4

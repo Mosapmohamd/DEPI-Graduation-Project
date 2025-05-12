@@ -13,6 +13,8 @@ from nltk.stem import WordNetLemmatizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage
+from nltk.tokenize import TreebankWordTokenizer
+treebank_tokenizer = TreebankWordTokenizer()
 
 # Download required NLTK resources
 nltk.download('punkt')
@@ -278,7 +280,7 @@ def preprocess_text(text):
     text = " ".join(processed_words)
     text = re.sub(r"http\S+|www\S+", "", text)
     text = re.sub(r"[^\w\s]", "", text)
-    tokens = word_tokenize(text)
+    tokens = treebank_tokenizer.tokenize(text)  # instead of word_tokenize(text)
     stop_words = set(stopwords.words("english"))
     tokens = [t for t in tokens if t not in stop_words]
     lemmatizer = WordNetLemmatizer()

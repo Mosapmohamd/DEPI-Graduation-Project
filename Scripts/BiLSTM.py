@@ -50,7 +50,7 @@ def preprocess_text(text):
 # Initialize the LLM (Gemini 2.0 Flash)
 llm = ChatGoogleGenerativeAI(
     model="gemini-2.0-flash",
-    google_api_key='AIzaSyAU0YcbrnhcZdS3pWEZXBYVp0UQGUSgn0s',
+    google_api_key=st.secrets["GOOGLE_API_KEY"]
     temperature=0.2,
     max_output_tokens=2000
 )

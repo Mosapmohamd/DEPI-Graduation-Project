@@ -16,7 +16,6 @@ https://bilstmpy-m6s8ts8adzgn4zfzyi9zji.streamlit.app/
 - [Model Architecture](#model-architecture)
 - [Results](#results)
 - [System Components](#system-components)
-- [Installation and Setup](#installation-and-setup)
 - [Usage](#usage)
 - [Future Work](#future-work)
 - [Team](#team)

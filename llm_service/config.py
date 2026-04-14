@@ -1,45 +1,48 @@
 import requests
 import json
 import re
+import os
 
-LLM_PROVIDER = "groq"  # "groq" or "ollama"
+LLM_PROVIDER = os.environ.get("LLM_PROVIDER", "groq")  # "groq" or "ollama"
 
 # -- Ollama Config --
-OLLAMA_BASE_URL = "http://localhost:11434"
-OLLAMA_MODEL = "qwen3:4b"  # User requested lightweight model
+OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen3:4b")
 
 # -- Groq Config --
-GROQ_API_KEY = ""
-GROQ_BASE_URL = "https://api.groq.com/openai/v1/chat/completions"
-GROQ_MODEL = "llama-3.1-8b-instant"
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")  # Set GROQ_API_KEY environment variable
+GROQ_BASE_URL = os.environ.get("GROQ_BASE_URL", "https://api.groq.com/openai/v1/chat/completions")
+GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.1-8b-instant")
+
 
 def _clean_json_response(content: str) -> str:
     """Removes thinking tags and markdown code blocks to extract pure JSON."""
     content = content.strip()
-    
+
     # Remove <think>...</think> blocks common in qwen and deepseek models
     content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL).strip()
-    
+
     # Strip markdown code fences if present
     if content.startswith("```"):
         lines = content.splitlines()
         if len(lines) > 1:
             # Skip the first line containing ```
             content = "\n".join(lines[1:])
-        
+
         # Remove trailing fence
         if content.endswith("```"):
             content = content[:-3].strip()
-    
+
     return content.strip()
 
+
 def call_groq_llm(system_prompt: str, user_prompt: str, expect_json: bool = False, retries: int = 2) -> str | dict:
-    """Call Groq Cloud API. This API uses OpenAI compatible format."""
+    """Call Groq Cloud API. Uses OpenAI-compatible format with retry logic."""
     headers = {
         "Authorization": f"Bearer {GROQ_API_KEY}",
         "Content-Type": "application/json"
     }
-    
+
     payload = {
         "model": GROQ_MODEL,
         "messages": [
@@ -48,7 +51,7 @@ def call_groq_llm(system_prompt: str, user_prompt: str, expect_json: bool = Fals
         ],
         "temperature": 0.3
     }
-    
+
     if expect_json:
         payload["response_format"] = {"type": "json_object"}
 
@@ -56,14 +59,14 @@ def call_groq_llm(system_prompt: str, user_prompt: str, expect_json: bool = Fals
         try:
             response = requests.post(GROQ_BASE_URL, headers=headers, json=payload, timeout=30)
             response.raise_for_status()
-            
+
             content = response.json()["choices"][0]["message"]["content"]
-            
+
             if not expect_json:
                 return content.strip()
-                
+
             cleaned_content = _clean_json_response(content)
-            
+
             try:
                 return json.loads(cleaned_content)
             except json.JSONDecodeError as e:
@@ -74,6 +77,7 @@ def call_groq_llm(system_prompt: str, user_prompt: str, expect_json: bool = Fals
                 raise e
 
     raise RuntimeError("Unexpected end of retry loop")
+
 
 def call_ollama(system_prompt: str, user_prompt: str, expect_json: bool = False, retries: int = 2) -> str | dict:
     """
@@ -88,7 +92,7 @@ def call_ollama(system_prompt: str, user_prompt: str, expect_json: bool = False,
         ],
         "stream": False
     }
-    
+
     if expect_json:
         payload["format"] = "json"
 
@@ -100,15 +104,15 @@ def call_ollama(system_prompt: str, user_prompt: str, expect_json: bool = False,
                 timeout=120
             )
             response.raise_for_status()
-            
+
             content = response.json()["message"]["content"]
-            
+
             if not expect_json:
                 # Strip think tags even for text mode to keep output clean
                 return re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL).strip()
-                
+
             cleaned_content = _clean_json_response(content)
-            
+
             try:
                 return json.loads(cleaned_content)
             except json.JSONDecodeError as e:
@@ -118,12 +122,14 @@ def call_ollama(system_prompt: str, user_prompt: str, expect_json: bool = False,
         except (requests.RequestException, KeyError) as e:
             if attempt == retries:
                 raise e
-                
+
     raise RuntimeError("Unexpected end of retry loop")
+
 
 def call_llm(system_prompt: str, user_prompt: str, expect_json: bool = False, retries: int = 2) -> str | dict:
     """
     Generic wrapper to dynamically call the chosen LLM based on LLM_PROVIDER.
+    This is the ONLY function that should be called by other modules.
     """
     if LLM_PROVIDER == "groq":
         return call_groq_llm(system_prompt, user_prompt, expect_json, retries)

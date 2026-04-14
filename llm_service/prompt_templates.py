@@ -1,6 +1,11 @@
 import json
 
+
 def build_mcq_prompt(skill: str, difficulty: str) -> tuple[str, str]:
+    """
+    Build system and user prompts for generating a single MCQ question.
+    Returns: (system_prompt, user_prompt)
+    """
     system_prompt = """You are an expert technical interviewer and test creator.
 Your goal is to generate a high-quality Multiple Choice Question (MCQ).
 Return ONLY valid JSON. Do not include any explanations outside the JSON."""
@@ -23,7 +28,12 @@ Ensure there are exactly 4 options. Return ONLY valid JSON."""
 
     return system_prompt, user_prompt
 
+
 def build_essay_prompt(skill: str, difficulty: str) -> tuple[str, str]:
+    """
+    Build system and user prompts for generating a single essay/text question.
+    Returns: (system_prompt, user_prompt)
+    """
     system_prompt = """You are an expert technical interviewer and test creator.
 Your goal is to generate a high-quality free-text / essay question.
 Return ONLY valid JSON. Do not include any explanations outside the JSON."""
@@ -42,10 +52,15 @@ Follow this exact JSON contract:
 }}
 
 Return ONLY valid JSON."""
-    
+
     return system_prompt, user_prompt
 
+
 def build_coding_prompt(skill: str, difficulty: str) -> tuple[str, str]:
+    """
+    Build system and user prompts for generating a single coding question.
+    Returns: (system_prompt, user_prompt)
+    """
     system_prompt = """You are an expert technical interviewer and test creator.
 Your goal is to generate a high-quality practical coding question.
 Return ONLY valid JSON. Do not include any explanations outside the JSON."""
@@ -67,7 +82,12 @@ Return ONLY valid JSON."""
 
     return system_prompt, user_prompt
 
+
 def build_evaluation_prompt(question: str, user_answer: str, q_type: str) -> tuple[str, str]:
+    """
+    Build system and user prompts for evaluating a candidate answer.
+    Returns: (system_prompt, user_prompt)
+    """
     system_prompt = """You are an expert technical interviewer evaluating a candidate's answer.
 You must be fair and precise.
 Return ONLY valid JSON. Do not include any explanations outside the JSON."""
@@ -89,7 +109,12 @@ Return ONLY valid JSON."""
 
     return system_prompt, user_prompt
 
+
 def build_interview_prompt(jd_skills: list[str], job_title: str) -> tuple[str, str]:
+    """
+    Build system and user prompts for generating scenario-based interview questions.
+    Returns: (system_prompt, user_prompt)
+    """
     system_prompt = """You are an expert technical interviewer preparing for a live interview.
 Your goal is to generate scenario-based and applied interview questions.
 Return ONLY valid JSON. Do not include any explanations outside the JSON."""
@@ -114,7 +139,12 @@ Generate exactly 5 questions spanning the Required Skills. Return ONLY valid JSO
 
     return system_prompt, user_prompt
 
+
 def build_learning_path_prompt(weak_skills: list[str]) -> tuple[str, str]:
+    """
+    Build system and user prompts for generating a learning path for weak skills.
+    Returns: (system_prompt, user_prompt) — note: the LLM should return markdown, not JSON.
+    """
     system_prompt = """You are an expert technical career coach.
 Provide a concise, highly actionable learning path formatted in Markdown.
 Do NOT return JSON. Return markdown text directly."""
@@ -128,15 +158,16 @@ Format your response in Markdown with bullet points, focusing on actionable step
 
     return system_prompt, user_prompt
 
+
 if __name__ == "__main__":
     # Smoke test for visually checking prompts over LLM
     from llm_service.config import call_llm
-    
+
     print("Testing MCQ Prompt construction:")
     sys_p, usr_p = build_mcq_prompt("Python", "easy")
     print("SYSTEM:", sys_p)
     print("USER:\n", usr_p)
-    
+
     print("\n\nTesting with chosen LLM...")
     try:
         res = call_llm(sys_p, usr_p, expect_json=True)
